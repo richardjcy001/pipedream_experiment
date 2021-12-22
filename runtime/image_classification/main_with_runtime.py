@@ -121,6 +121,7 @@ def main():
     args = parser.parse_args()
 
     torch.cuda.set_device(args.local_rank)
+    print("cuda device set up")
 
     # define loss function (criterion)
     criterion = nn.CrossEntropyLoss()
@@ -129,6 +130,7 @@ def main():
     module = importlib.import_module(args.module)
     args.arch = module.arch()
     model = module.model(criterion)
+    print("module states created")
 
     # determine shapes of all tensors in passed-in model
     if args.arch == 'inception_v3':
@@ -141,9 +143,8 @@ def main():
     target_tensor_names = {"target"}
     for (stage, inputs, outputs) in model[:-1]:  # Skip last layer (loss).
         input_tensors = []
-        for input in inputs:
-            input_tensor = torch.zeros(tuple(training_tensor_shapes[input]),
-                                       dtype=torch.float32)
+        for x in inputs:
+            input_tensor = torch.zeros(tuple(training_tensor_shapes[x]),dtype=torch.float32)
             input_tensors.append(input_tensor)
         with torch.no_grad():
             output_tensors = stage(*tuple(input_tensors))
@@ -153,6 +154,7 @@ def main():
                                          list(output_tensors)):
             training_tensor_shapes[output] = list(output_tensor.size())
             dtypes[output] = output_tensor.dtype
+    print("input/output tensor set up")
 
     eval_tensor_shapes = {}
     for key in training_tensor_shapes:
@@ -160,12 +162,14 @@ def main():
             [args.eval_batch_size] + training_tensor_shapes[key][1:])
         training_tensor_shapes[key] = tuple(
             training_tensor_shapes[key])
+    print("eval_tensor_shapes set up")
 
     configuration_maps = {
         'module_to_stage_map': None,
         'stage_to_rank_map': None,
         'stage_to_depth_map': None
     }
+    print("configuration_maps set up")
     if args.config_path is not None:
         json_config_file = json.load(open(args.config_path, 'r'))
         configuration_maps['module_to_stage_map'] = json_config_file.get("module_to_stage_map", None)
@@ -189,6 +193,8 @@ def main():
         verbose_freq=args.verbose_frequency,
         model_type=runtime.IMAGE_CLASSIFICATION,
         enable_recompute=args.recompute)
+    
+    print("StageRuntime set up")
 
     # stage needed to determine if current stage is the first stage
     # num_stages needed to determine if current stage is the last stage
@@ -196,8 +202,8 @@ def main():
     args.stage = r.stage
     args.num_stages = r.num_stages
     args.num_ranks = r.num_ranks
-    if not is_first_stage():
-        args.synthetic_data = True
+    # if not is_first_stage():
+    #     args.synthetic_data = True
 
     # define optimizer
     if args.no_input_pipelining:
@@ -290,7 +296,7 @@ def main():
             distributed_sampler = True
 
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
+        train_dataset, batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True, sampler=train_sampler, drop_last=True)
 
     val_loader = torch.utils.data.DataLoader(
@@ -575,7 +581,7 @@ def accuracy(output, target, topk=(1,)):
 
         res = []
         for k in topk:
-            correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
+            correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 

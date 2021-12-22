@@ -120,7 +120,7 @@ def convert_subgraph_to_module(graph, full_graph, num_subgraphs, module_name, in
         layer_name = "self.layer%d" % counter
         output_name = "out%d" % counter
         layer_declaration = "torch.nn.%s" % (
-            node.node_desc.replace("inplace", "inplace=True"))
+            node.node_desc.replace("inplace=True", "inplace=True"))
         layer_names[node.node_id] = layer_name
         if node.node_id not in output_names:
             output_names[node.node_id] = output_name
@@ -154,7 +154,7 @@ def convert_subgraph_to_module(graph, full_graph, num_subgraphs, module_name, in
                     modules = node_desc.split("    ")[1:-1]
                     module_declarations = []
                     for module in modules:
-                        module_declaration = "torch.nn." + module.split(": ")[1].replace("inplace", "inplace=True")
+                        module_declaration = "torch.nn." + module.split(": ")[1]
                         module_declarations.append(module_declaration)
                     layer_declaration = "MaskConv(torch.nn.Sequential(%s))" % ",\n            ".join(module_declarations)
                     import_statements.append("from model import MaskConv")
@@ -197,7 +197,7 @@ def convert_subgraph_to_module(graph, full_graph, num_subgraphs, module_name, in
                     modules = node_desc[:-2].split("  ")[1:]
                     module_declarations = []
                     for module in modules:
-                        module_declaration = "torch.nn." + module.split(": ")[1].replace("inplace", "inplace=True")
+                        module_declaration = "torch.nn." + module.split(": ")[1]
                         module_declarations.append(module_declaration)
                     layer_declaration = "SequenceWise(torch.nn.Sequential(%s))" % ",\n            ".join(module_declarations)
                     import_statements.append("from model import SequenceWise")
@@ -314,7 +314,7 @@ def convert_subgraph_to_module(graph, full_graph, num_subgraphs, module_name, in
     # Ensure that outputs of a module are returned in the same order as
     # the original model implementation.
     # TODO: This might not work as intended for sub-graphs.
-    full_graph.populate_depths()
+    # full_graph.populate_depths()
     graph_output_names, _ = get_output_names(graph, full_graph, 0)
     for key in graph_output_names:
         graph_output_names[key] = output_names[key]

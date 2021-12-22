@@ -8,7 +8,7 @@ def arch():
 
 def model(criterion):
     return [
-        (VGG16Partitioned(), ["input"], ["output"]),
+        (VGG16Partitioned(), ["input0"], ["output"]),
         (criterion, ["output"], ["loss"])
     ]
 

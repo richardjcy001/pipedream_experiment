@@ -155,15 +155,16 @@ class Profiling(object):
                     idx = -1
                     if not this_profiler.profiling_on:
                         return
-                    while args[0] != this_profiler.record['backward'][idx][0]:
+                    while len(this_profiler.record['backward']) > 0 and  args[0] != this_profiler.record['backward'][idx][0]:
                         idx -= 1
                         if (-idx) == len(this_profiler.record['backward']):
                             return
                     torch.cuda.synchronize()
-                    this_profiler.record['backward'][idx] = (this_profiler.record['backward'][idx][0],
-                                                             this_profiler.record['backward'][idx][1],
-                                                             this_profiler.record['backward'][idx][2],
-                                                             time.time())
+                    if(len(this_profiler.record['backward']) > 0):
+                        this_profiler.record['backward'][idx] = (this_profiler.record['backward'][idx][0],
+                                                                 this_profiler.record['backward'][idx][1],
+                                                                 this_profiler.record['backward'][idx][2],
+                                                                 time.time())
                 sub_module.register_backward_pre_hook(backward_pre_hook)
                 sub_module.register_backward_hook(backward_post_hook)
 

@@ -528,8 +528,8 @@ class Graph(object):
         ax.set_ylabel("CDF (\%)")
         plt.legend()
 
-        with PdfPages(os.path.join(output_directory, "cdf.pdf")) as pdf:
-            pdf.savefig(bbox_inches='tight')
+        # with PdfPages(os.path.join(output_directory, "cdf.pdf")) as pdf:
+        #     pdf.savefig(bbox_inches='tight')
 
     def plot_bar_graph(self, all_values, ylabel, legend, output_template, output_directory):
         import matplotlib
@@ -570,15 +570,16 @@ class Graph(object):
             if legend:
                 plt.legend()
 
-            with PdfPages(os.path.join(output_directory,
-                          (output_template % labels[i].lower()))) as pdf:
-                pdf.savefig(bbox_inches='tight')
+            # with PdfPages(os.path.join(output_directory,
+            #               (output_template % labels[i].lower()))) as pdf:
+            #     pdf.savefig(bbox_inches='tight')
 
     def render_bar_graphs_and_cdfs(self, output_directory):
         topological_ordering = self.topological_sort()[1:]  # Skip input node.
         cdfs = []
         raw_values = []
         pdfs = []
+'''     
         for node in topological_ordering:
             activation_size = node.activation_size
             if isinstance(activation_size, list):
@@ -613,7 +614,7 @@ class Graph(object):
             cdfs[i][1] /= (cdfs[-1][1] / 100.0)
             cdfs[i][2] /= (cdfs[-1][2] / 100.0)
         self.plot_cdfs(cdfs, output_directory)
-
+'''
 
 class Node(object):
     def __init__(self, node_id, node_desc="", forward_compute_time=0.0,
